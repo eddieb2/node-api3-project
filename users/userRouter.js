@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Users = require('./userDb');
+const Posts = require('../posts/postDb');
 
 // STUB Complete
 router.post('/', validateUser, (req, res) => {
@@ -13,7 +14,12 @@ router.post('/', validateUser, (req, res) => {
     });
 });
 
-router.post('/:id/posts', validatePost, (req, res) => {});
+// STUB Complete
+router.post('/:id/posts', validatePost, validateUserId, (req, res) => {
+  Posts.insert(req.body).then((post) => {
+    res.status(201).json(post);
+  });
+});
 
 // STUB Complete
 router.get('/', (req, res) => {
@@ -100,6 +106,7 @@ function validateUser(req, res, next) {
   }
 }
 
+// STUB Complete
 function validatePost(req, res, next) {
   if (Object.keys(req.body).length === 0) {
     res.status(400).json({ errorMessage: 'Missing post data' });
