@@ -1,47 +1,120 @@
 const express = require('express');
-
 const router = express.Router();
+const Users = require('./userDb');
+const Posts = require('../posts/postDb');
 
-router.post('/', (req, res) => {
-  // do your magic!
+// STUB Complete
+router.post('/', validateUser, (req, res) => {
+  Users.insert(req.body)
+    .then((response) => {
+      res.status(201).json(response);
+    })
+    .catch((error) => {
+      res.status(500).json({ errorMessage: 'Failed to add the user.' });
+    });
 });
 
-router.post('/:id/posts', (req, res) => {
-  // do your magic!
+// STUB Complete
+router.post('/:id/posts', validatePost, validateUserId, (req, res) => {
+  Posts.insert(req.body).then((post) => {
+    res.status(201).json(post);
+  });
 });
 
+// STUB Complete
 router.get('/', (req, res) => {
-  // do your magic!
+  Users.get()
+    .then((users) => {
+      res.status(200).json(users);
+    })
+    .catch((error) => {
+      res.status(500).json({ errorMessage: 'Failed to retrieve users.' });
+    });
 });
 
-router.get('/:id', (req, res) => {
-  // do your magic!
+// STUB Complete
+router.get('/:id', validateUserId, (req, res) => {
+  res.status(200).json(req.user);
 });
 
-router.get('/:id/posts', (req, res) => {
-  // do your magic!
+// STUB Complete
+router.get('/:id/posts', validateUserId, (req, res) => {
+  Users.getUserPosts(req.user.id)
+    .then((posts) => {
+      res.status(200).json(posts);
+    })
+    .catch((error) => {
+      res
+        .status(500)
+        .json({ errorMessage: "Failed to retrieve desired user's posts" });
+    });
 });
 
-router.delete('/:id', (req, res) => {
-  // do your magic!
+// STUB Complete
+// REVIEW - Needs reviewed
+router.delete('/:id', validateUserId, (req, res) => {
+  Users.remove(req.user.id)
+    .then(() => {
+      res.status(200).json(req.user);
+    })
+    .catch((err) => {
+      res.status(500).json({ errorMessage: 'Error deleting the user.' });
+    });
 });
 
-router.put('/:id', (req, res) => {
-  // do your magic!
+// STUB Complete
+// REVIEW - Needs reviewed
+router.put('/:id', validateUserId, (req, res) => {
+  // const id = req.params.id;
+  Users.update(req.user.id, req.body).then(() => {
+    res.status(200).json(req.body);
+  });
 });
 
-//custom middleware
+//SECTION Custom Middleware
 
+// STUB Complete
 function validateUserId(req, res, next) {
-  // do your magic!
+  const id = req.params.id;
+  Users.getById(id)
+    .then((user) => {
+      if (user) {
+        req.user = user;
+        next();
+      } else {
+        res.status(400).json({ message: 'Enter a valid user ID.' });
+      }
+    })
+    .catch((err) => {
+      res.status(500).json({ errorMessage: 'Failed to retrieve users.' });
+    });
 }
 
+// STUB Complete
 function validateUser(req, res, next) {
-  // do your magic!
+  console.log(req.body);
+  /*
+    Option 2) 
+    if(res.body.name === undefined) 
+ */
+  if (Object.keys(req.body).length === 0) {
+    res.status(400).json({ error: 'Missing post data.' });
+  } else if (req.body.name === '') {
+    res.status(400).json({ error: 'Missing required text field.' });
+  } else {
+    next();
+  }
 }
 
+// STUB Complete
 function validatePost(req, res, next) {
-  // do your magic!
+  if (Object.keys(req.body).length === 0) {
+    res.status(400).json({ errorMessage: 'Missing post data' });
+  } else if (req.body.text === '') {
+    res.status(400).json({ errorMessage: 'Missing required text field' });
+  } else {
+    next();
+  }
 }
 
 module.exports = router;
